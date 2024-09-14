@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QLineEdit, QFileDialog, QRadioButton, QButtonGroup, QFrame, QMessageBox
 )
 from PyQt5.QtGui import QPixmap
-from PIL import Image
+from PyQt5.QtCore import Qt  # Import Qt for alignment
 import os
 import sys
 
@@ -13,6 +13,8 @@ class ASCIIArtConverterGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.input_file = None
+        # Define the path for the temporary file in the same directory as this script
+        self.temp_preview_file = os.path.join(os.path.dirname(__file__), 'temp_preview.png')
         self.init_ui()
 
     def init_ui(self):
@@ -65,17 +67,23 @@ class ASCIIArtConverterGUI(QWidget):
         # Preview section
         preview_layout = QHBoxLayout()
 
-        # Original image preview
+        # Original image preview (Center Aligned)
+        original_layout = QVBoxLayout()
         self.original_label = QLabel('Original Image:')
         self.original_label.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
         self.original_label.setFixedSize(200, 150)
-        preview_layout.addWidget(self.original_label)
+        self.original_label.setAlignment(Qt.AlignCenter)  # Center align text and images
+        original_layout.addWidget(self.original_label, alignment=Qt.AlignCenter)
+        preview_layout.addLayout(original_layout)
 
-        # ASCII art preview
+        # ASCII art preview (Center Aligned)
+        ascii_layout = QVBoxLayout()
         self.ascii_label = QLabel('ASCII Art Preview:')
         self.ascii_label.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
         self.ascii_label.setFixedSize(400, 300)
-        preview_layout.addWidget(self.ascii_label)
+        self.ascii_label.setAlignment(Qt.AlignCenter)  # Center align text and images
+        ascii_layout.addWidget(self.ascii_label, alignment=Qt.AlignCenter)
+        preview_layout.addLayout(ascii_layout)
 
         main_layout.addLayout(preview_layout)
 
@@ -103,10 +111,11 @@ class ASCIIArtConverterGUI(QWidget):
             self.input_file = file_path
             self.file_label.setText(os.path.basename(file_path))
             self.display_original(file_path)
+            self.clear_ascii_preview()  # Clear the previous ASCII preview if it exists
 
     def display_original(self, image_path):
         pixmap = QPixmap(image_path)
-        pixmap = pixmap.scaled(200, 150)
+        pixmap = pixmap.scaled(200, 150, aspectRatioMode=True)
         self.original_label.setPixmap(pixmap)
 
     def convert_image(self):
@@ -123,26 +132,34 @@ class ASCIIArtConverterGUI(QWidget):
 
         hd_mode = self.hd_radio.isChecked()
 
-        # Here, you should call your ASCII conversion logic and save the result to 'temp_preview.jpeg'
-        ascii_art_main(self.input_file, 'temp_preview.jpeg', output_width=output_width, hd=hd_mode)
-
-        # For demonstration purposes, we'll just use the original image:
-        self.display_ascii_preview('temp_preview.jpeg')
-        self.save_button.setEnabled(True)
+        try:
+            # Call your ASCII conversion logic and save the result to the temporary file
+            ascii_art_main(self.input_file, self.temp_preview_file, output_width=output_width, hd=hd_mode)
+            self.display_ascii_preview(self.temp_preview_file)
+            self.save_button.setEnabled(True)
+        except Exception as e:
+            self.show_error(f"Error during conversion: {e}")
 
     def display_ascii_preview(self, image_path):
+        if not os.path.exists(image_path):
+            self.show_error("The ASCII art preview could not be found.")
+            return
         pixmap = QPixmap(image_path)
-        pixmap = pixmap.scaled(400, 300)
+        pixmap = pixmap.scaled(400, 300, aspectRatioMode=True)
         self.ascii_label.setPixmap(pixmap)
 
     def save_image(self):
         if not self.input_file:
             return
 
-        save_path, _ = QFileDialog.getSaveFileName(self, "Save ASCII Art", "", "JPEG Files (*.jpeg);;All Files (*)")
+        save_path, _ = QFileDialog.getSaveFileName(self, "Save ASCII Art", "", "JPEG Files (*.jpeg);;PNG Files (*.png);;All Files (*)")
         if save_path:
-            # Save the ASCII art (temp_preview.jpeg) to the selected path
-            os.rename('temp_preview.jpeg', save_path)
+            try:
+                # Save the ASCII art (temp_preview.jpeg) to the selected path
+                os.rename(self.temp_preview_file, save_path)
+                self.show_info(f"ASCII art saved to: {save_path}")
+            except Exception as e:
+                self.show_error(f"Error saving file: {e}")
 
     def reset(self):
         self.input_file = None
@@ -150,14 +167,27 @@ class ASCIIArtConverterGUI(QWidget):
         self.original_label.clear()
         self.ascii_label.clear()
         self.save_button.setEnabled(False)
-        if os.path.exists('temp_preview.jpeg'):
-            os.remove('temp_preview.jpeg')
+        if os.path.exists(self.temp_preview_file):
+            try:
+                os.remove(self.temp_preview_file)
+            except Exception as e:
+                self.show_error(f"Error deleting temporary file: {e}")
 
     def show_error(self, message):
         messagebox = QMessageBox()
         messagebox.setIcon(QMessageBox.Critical)
         messagebox.setText(message)
         messagebox.exec_()
+
+    def show_info(self, message):
+        messagebox = QMessageBox()
+        messagebox.setIcon(QMessageBox.Information)
+        messagebox.setText(message)
+        messagebox.exec_()
+
+    def clear_ascii_preview(self):
+        self.ascii_label.clear()
+        self.save_button.setEnabled(False)
 
 def start_gui():
     app = QApplication(sys.argv)

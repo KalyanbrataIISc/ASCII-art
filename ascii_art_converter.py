@@ -57,7 +57,7 @@ def get_font_path():
         raise OSError("Unsupported operating system. Please use macOS or Windows.")
 
 def save_ascii_as_image(ascii_art, output_image_path, font_size):
-    """Save ASCII art as a JPEG image."""
+    """Save ASCII art as a PNG image with high resolution."""
     font_path = get_font_path()
 
     try:
@@ -70,30 +70,36 @@ def save_ascii_as_image(ascii_art, output_image_path, font_size):
     
     # Determine character width and height using getbbox
     char_width, char_height = font.getbbox("A")[2], font.getbbox("A")[3]
-    
-    width = max(len(line) for line in lines) * char_width
+
+    # Calculate the output image size
+    max_line_length = max(len(line) for line in lines)
+    # Calculate the exact width needed for the ASCII art without extra white space
+    width = max_line_length * char_width
     height = len(lines) * char_height
 
+    # Create a new image with high resolution
     image = Image.new('RGB', (width, height), color='white')
     draw = ImageDraw.Draw(image)
 
     y_offset = 0
     for line in lines:
+        # Draw each line of ASCII text
         draw.text((0, y_offset), line, font=font, fill='black')
         y_offset += char_height
 
-    image.save(output_image_path, 'JPEG')
+    image.save(output_image_path, 'PNG')  # Save as PNG for lossless quality
 
-def main(image_path, output_jpeg_path, output_width=100, hd=False):
-    # Determine parameters based on HD or SD
+def main(image_path, output_png_path, output_width=100, hd=False):
+    # Determine character set and base font size
     if hd:
         ascii_chars = ASCII_CHARS_HD
-        font_size = 6
-        output_width = max(output_width, 200)  # Ensure minimum width for HD
+        base_font_size = 16  # Adjust base font size for HD
     else:
         ascii_chars = ASCII_CHARS_SD
-        font_size = 10
-        output_width = min(output_width, 100)  # Cap width for SD
+        base_font_size = 10  # Base font size for SD
+
+    # Dynamically adjust the font size based on output width
+    font_size = max(base_font_size, int(output_width / 10))
 
     # Open the input image
     try:
@@ -106,12 +112,12 @@ def main(image_path, output_jpeg_path, output_width=100, hd=False):
     # Convert image to ASCII
     ascii_art = convert_image_to_ascii(image, new_width=output_width, ascii_chars=ascii_chars)
 
-    # Save the ASCII art as a JPEG image using a monospaced font
-    save_ascii_as_image(ascii_art, output_jpeg_path, font_size=font_size)
+    # Save the ASCII art as a PNG image using a monospaced font
+    save_ascii_as_image(ascii_art, output_png_path, font_size=font_size)
 
 # Example usage
 if __name__ == "__main__":
     # Replace 'input_image.jpeg' with your input image file path
-    # The output JPEG image will be saved as 'ascii_output.jpeg'
+    # The output PNG image will be saved as 'ascii_output.png'
     # Set hd=True for HD output, False for SD output
-    main('pic.png', 'ascii_output.jpeg', output_width=100, hd=False)
+    main('pic.png', 'ascii_output.png', output_width=300, hd=True)
