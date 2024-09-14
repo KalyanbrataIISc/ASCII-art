@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
     QLineEdit, QFileDialog, QRadioButton, QButtonGroup, QFrame, QMessageBox
 )
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import Qt  # Import Qt for alignment
 import os
 import sys
@@ -15,6 +15,8 @@ class ASCIIArtConverterGUI(QWidget):
         self.input_file = None
         # Define the path for the temporary file in the same directory as this script
         self.temp_preview_file = os.path.join(os.path.dirname(__file__), 'temp_preview.png')
+        # Set the application icon
+        self.setWindowIcon(QIcon('assets/icon.png'))  # Replace 'icon.png' with the path to your icon file
         self.init_ui()
 
     def init_ui(self):
@@ -191,6 +193,10 @@ class ASCIIArtConverterGUI(QWidget):
 
 def start_gui():
     app = QApplication(sys.argv)
+    # Set the application icon globally
+    icon_path = os.path.join(os.path.dirname(__file__), 'assets', 'icon.png')  # Ensure this path is correct
+    app.setWindowIcon(QIcon(icon_path))  # Set the global application icon
+
     window = ASCIIArtConverterGUI()
     window.show()
     sys.exit(app.exec_())
