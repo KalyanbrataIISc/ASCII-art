@@ -48,8 +48,8 @@ class ASCIIArtConverterGUI(QWidget):
         mode_label = QLabel('Mode:')
         mode_layout.addWidget(mode_label)
 
-        self.hd_radio = QRadioButton('HD')
-        self.sd_radio = QRadioButton('SD')
+        self.hd_radio = QRadioButton('All characters (Gradient)')
+        self.sd_radio = QRadioButton('Few characters (Contrast)')
         self.sd_radio.setChecked(True)
 
         self.mode_group = QButtonGroup()
