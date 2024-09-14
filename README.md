@@ -1,5 +1,3 @@
-Here's a detailed `README.md` for your ASCII Art Converter application. This README includes information about the project, how to set it up, dependencies, and usage instructions.
-
 ### README.md
 ```markdown
 # ASCII Art Converter
