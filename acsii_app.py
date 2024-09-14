@@ -81,14 +81,14 @@ class ASCIIArtConverterGUI(QWidget):
 
         # Save and Reset buttons
         button_layout = QHBoxLayout()
+        self.reset_button = QPushButton('Reset')
+        self.reset_button.clicked.connect(self.reset)
+        button_layout.addWidget(self.reset_button)
+
         self.save_button = QPushButton('Save')
         self.save_button.setEnabled(False)
         self.save_button.clicked.connect(self.save_image)
         button_layout.addWidget(self.save_button)
-
-        self.reset_button = QPushButton('Reset')
-        self.reset_button.clicked.connect(self.reset)
-        button_layout.addWidget(self.reset_button)
 
         main_layout.addLayout(button_layout)
 
