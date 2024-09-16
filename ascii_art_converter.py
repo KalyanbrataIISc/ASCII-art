@@ -4,7 +4,10 @@ import numpy as np
 
 # Character sets for SD and HD ASCII art
 ASCII_CHARS_SD = "@%#*+=-:. "
-ASCII_CHARS_HD = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+ASCII_CHARS_HD = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+
+# Comprehensive ASCII character order string
+ASCII_ORDER = "ÑÅÃðÛÕÆH$åÜÚÙÊÂqgd0ãÔËÉÈÄÁÀpR8ØÖÓÒkhbUQNDB@965âßÐKäáàÝÇyZOGE42#êufaSPM3%ëéèÞxtlYXW1&çÎzsnjC7][îæÏÍÌwomieVTLFïíìrJ}{cIv?)(><!+*^\\=/|~_;\"-`:,\'. "
 
 def resize_image(image, new_width):
     """Resize image to a new width while maintaining aspect ratio."""
@@ -17,6 +20,23 @@ def resize_image(image, new_width):
 def grayscale_image(image):
     """Convert image to grayscale."""
     return image.convert("L")
+
+def generate_custom_ascii_chars(custom_chars, brightness):
+    """Generate a sorted list of custom ASCII characters based on the given order."""
+    # Ensure there is always a space in the character set
+    if ' ' not in custom_chars:
+        custom_chars += ' '
+    
+    custom_chars = "".join(set(custom_chars))  # Remove duplicates
+
+    for _ in range(brightness):
+        custom_chars += " "  # Add extra spaces for brightness
+
+    # Sort characters based on their order in ASCII_ORDER
+    sorted_custom_chars = sorted(custom_chars, key=lambda x: ASCII_ORDER.index(x))
+    
+    # Return the sorted custom character set
+    return ''.join(sorted_custom_chars)
 
 def map_pixels_to_ascii_chars(image, ascii_chars):
     """Map each pixel to an ASCII character based on its intensity."""
@@ -89,13 +109,19 @@ def save_ascii_as_image(ascii_art, output_image_path, font_size):
 
     image.save(output_image_path, 'PNG')  # Save as PNG for lossless quality
 
-def main(image_path, output_png_path, output_width=100, hd=False):
+def main(image_path, output_png_path, output_width=100, hd=False, custom=None, brightness=0):
     # Determine character set and base font size
-    if hd:
-        ascii_chars = ASCII_CHARS_HD
+    if custom:
+        # Generate a custom ASCII character set with brightness adjustment
+        ascii_chars = generate_custom_ascii_chars(custom, brightness)
+        base_font_size = 10  # Adjust base font size for custom mode
+    elif hd:
+        # Adjust the HD character set with brightness
+        ascii_chars = generate_custom_ascii_chars(ASCII_CHARS_HD, brightness)
         base_font_size = 16  # Adjust base font size for HD
     else:
-        ascii_chars = ASCII_CHARS_SD
+        # Adjust the SD character set with brightness
+        ascii_chars = generate_custom_ascii_chars(ASCII_CHARS_SD, brightness)
         base_font_size = 10  # Base font size for SD
 
     # Dynamically adjust the font size based on output width
@@ -120,4 +146,4 @@ if __name__ == "__main__":
     # Replace 'input_image.jpeg' with your input image file path
     # The output PNG image will be saved as 'ascii_output.png'
     # Set hd=True for HD output, False for SD output
-    main('pic.png', 'ascii_output.png', output_width=300, hd=True)
+    main('pic.jpeg', 'ascii_output.png', output_width=300, hd=False, custom=None, brightness=3)
