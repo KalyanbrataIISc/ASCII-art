@@ -1,13 +1,39 @@
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
-    QLineEdit, QFileDialog, QRadioButton, QButtonGroup, QFrame, QMessageBox, QSlider
+    QLineEdit, QFileDialog, QRadioButton, QButtonGroup, QFrame, QMessageBox, QSlider, QScrollArea
 )
-from PyQt5.QtGui import QPixmap, QIcon, QColor
-from PyQt5.QtCore import Qt  # Import Qt for alignment
+from PyQt5.QtGui import QPixmap, QIcon, QColor, QImage, QPainter
+from PyQt5.QtCore import Qt, QRect  # Import Qt for alignment and rectangle handling
 import os
 import sys
 
 from ascii_art_converter import main as ascii_art_main
+
+class ZoomableLabel(QLabel):
+    def __init__(self, parent=None):
+        super(ZoomableLabel, self).__init__(parent)
+        self.setScaledContents(True)  # Allow scaling of the pixmap
+        self._pixmap = None
+        self._zoom_level = 1.0
+
+    def setPixmap(self, pixmap):
+        self._pixmap = pixmap
+        self.update_pixmap()
+
+    def update_pixmap(self):
+        if self._pixmap:
+            scaled_pixmap = self._pixmap.scaled(self._zoom_level * self._pixmap.size(), Qt.KeepAspectRatio)
+            super(ZoomableLabel, self).setPixmap(scaled_pixmap)
+
+    def wheelEvent(self, event):
+        """Handle mouse wheel events for zooming."""
+        if event.angleDelta().y() > 0:
+            self._zoom_level *= 1.1  # Zoom in
+        else:
+            self._zoom_level *= 0.9  # Zoom out
+
+        self.update_pixmap()
+        event.accept()
 
 class ASCIIArtConverterGUI(QWidget):
     def __init__(self):
@@ -115,23 +141,21 @@ class ASCIIArtConverterGUI(QWidget):
         # Preview section
         preview_layout = QHBoxLayout()
 
-        # Original image preview (Center Aligned)
-        original_layout = QVBoxLayout()
-        self.original_label = QLabel('Original Image:')
-        self.original_label.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
-        self.original_label.setFixedSize(200, 150)
-        self.original_label.setAlignment(Qt.AlignCenter)  # Center align text and images
-        original_layout.addWidget(self.original_label, alignment=Qt.AlignCenter)
-        preview_layout.addLayout(original_layout)
+        # Original image preview (Zoomable and scrollable)
+        original_scroll_area = QScrollArea()
+        self.original_label = ZoomableLabel()
+        self.original_label.setFixedSize(400, 300)
+        original_scroll_area.setWidgetResizable(True)
+        original_scroll_area.setWidget(self.original_label)
+        preview_layout.addWidget(original_scroll_area)
 
-        # ASCII art preview (Center Aligned)
-        ascii_layout = QVBoxLayout()
-        self.ascii_label = QLabel('ASCII Art Preview:')
-        self.ascii_label.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
-        self.ascii_label.setFixedSize(400, 300)
-        self.ascii_label.setAlignment(Qt.AlignCenter)  # Center align text and images
-        ascii_layout.addWidget(self.ascii_label, alignment=Qt.AlignCenter)
-        preview_layout.addLayout(ascii_layout)
+        # ASCII art preview (Zoomable and scrollable)
+        ascii_scroll_area = QScrollArea()
+        self.ascii_label = ZoomableLabel()
+        self.ascii_label.setFixedSize(600, 450)
+        ascii_scroll_area.setWidgetResizable(True)
+        ascii_scroll_area.setWidget(self.ascii_label)
+        preview_layout.addWidget(ascii_scroll_area)
 
         main_layout.addLayout(preview_layout)
 
@@ -188,7 +212,6 @@ class ASCIIArtConverterGUI(QWidget):
 
     def display_original(self, image_path):
         pixmap = QPixmap(image_path)
-        pixmap = pixmap.scaled(200, 150, aspectRatioMode=True)
         self.original_label.setPixmap(pixmap)
 
     def convert_image(self):
@@ -227,7 +250,6 @@ class ASCIIArtConverterGUI(QWidget):
             self.show_error("The ASCII art preview could not be found.")
             return
         pixmap = QPixmap(image_path)
-        pixmap = pixmap.scaled(400, 300, aspectRatioMode=True)
         self.ascii_label.setPixmap(pixmap)
 
     def save_image(self):
@@ -237,7 +259,7 @@ class ASCIIArtConverterGUI(QWidget):
         save_path, _ = QFileDialog.getSaveFileName(self, "Save ASCII Art", "", "JPEG Files (*.jpeg);;PNG Files (*.png);;All Files (*)")
         if save_path:
             try:
-                # Save the ASCII art (temp_preview.jpeg) to the selected path
+                # Save the ASCII art (temp_preview.png) to the selected path
                 os.rename(self.temp_preview_file, save_path)
                 self.show_info(f"ASCII art saved to: {save_path}")
             except Exception as e:
