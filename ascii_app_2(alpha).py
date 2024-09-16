@@ -2,8 +2,8 @@ from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
     QLineEdit, QFileDialog, QRadioButton, QButtonGroup, QFrame, QMessageBox, QSlider, QScrollArea
 )
-from PyQt5.QtGui import QPixmap, QIcon, QColor, QImage, QPainter
-from PyQt5.QtCore import Qt, QRect  # Import Qt for alignment and rectangle handling
+from PyQt5.QtGui import QPixmap, QIcon, QImage
+from PyQt5.QtCore import Qt
 import os
 import sys
 
@@ -12,7 +12,7 @@ from ascii_art_converter import main as ascii_art_main
 class ZoomableLabel(QLabel):
     def __init__(self, parent=None):
         super(ZoomableLabel, self).__init__(parent)
-        self.setScaledContents(True)  # Allow scaling of the pixmap
+        self.setScaledContents(False)  # Do not scale contents automatically
         self._pixmap = None
         self._zoom_level = 1.0
 
@@ -22,11 +22,17 @@ class ZoomableLabel(QLabel):
 
     def update_pixmap(self):
         if self._pixmap:
-            scaled_pixmap = self._pixmap.scaled(self._zoom_level * self._pixmap.size(), Qt.KeepAspectRatio)
+            # Dynamically transform the original pixmap based on zoom level
+            scaled_pixmap = self._pixmap.scaled(
+                self._zoom_level * self._pixmap.size(), 
+                Qt.KeepAspectRatio, 
+                Qt.SmoothTransformation  # Use smooth transformation for better quality
+            )
             super(ZoomableLabel, self).setPixmap(scaled_pixmap)
 
     def wheelEvent(self, event):
         """Handle mouse wheel events for zooming."""
+        # Adjust zoom level based on the wheel event
         if event.angleDelta().y() > 0:
             self._zoom_level *= 1.1  # Zoom in
         else:

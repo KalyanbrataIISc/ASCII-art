@@ -7,7 +7,7 @@ ASCII_CHARS_SD = "@%#*+=-:. "
 ASCII_CHARS_HD = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
 
 # Comprehensive ASCII character order string
-ASCII_ORDER = "ÑÅÃðÛÕÆH$åÜÚÙÊÂqgd0ãÔËÉÈÄÁÀpR8ØÖÓÒkhbUQNDB@965âßÐKäáàÝÇyZOGE42#êufaSPM3%ëéèÞxtlYXW1&çÎzsnjC7][îæÏÍÌwomieVTLFïíìrJ}{cIv?)(><!+*^\\=/|~_;\"-`:,\'. "
+ASCII_ORDER = '$Hqgd0Rp8@UQNDBkhb965KA#ZOGEy42%SPMufa3&YXWxtl1Czsnj7][VTLFwomieJr}{Icv?)(><!+*^\\=/|~_;"-`:,\'. '
 
 def resize_image(image, new_width):
     """Resize image to a new width while maintaining aspect ratio."""
